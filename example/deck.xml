@@ -22,15 +22,11 @@
 	
 	<deck name="mydeck" width="400" height="600" scale="1.5">
 		<cards>
-			<card text="Give **2** @heart" cost="2" id="1" tags="simple" />
-			<card text="Give **1** @heart" cost="1" id="2" tags="simple" />
-			<card text="Spend **1** @heart to give **3** @heart" cost="3" id="3" tags="complex" />
-			
-			<google-sheet key="1jETidoy2203QMhEvAmFUvFKOXSiyGVZkELJXIrjDBJo" sheet="mydeck_cards" />
+			<google-sheet key="1jETidoy2203QMhEvAmFUvFKOXSiyGVZkELJXIrjDBJo" sheet="example_cards" />
 			
 			<render>
-				<set-name value="Card #${card.id}" />
-				<set-description value="Costs ${card.cost} to play" />
+				<set-name value="#${card.id}: ${card.name} (${card.cost})" />
+				<set-description value="${card.tags}" />
 			
 				<face>
 					<draw-rect x="0" y="0" width="400" height="600" color="#000000" />
