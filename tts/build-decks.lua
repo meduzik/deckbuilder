@@ -61,7 +61,7 @@ function build_decks()
 				width = sheet.width,
 				height = sheet.height,
 				number = sheet.count,
-				back_is_hidden = sheet.has_face_hidden,
+				back_is_hidden = not sheet.has_face_hidden,
 				unique_backs = sheet.unique_backs
 			}
 			sheet_deck.setCustomObject(data)
