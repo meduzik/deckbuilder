@@ -1,0 +1,45 @@
+.image {
+    position: absolute;
+}
+
+img {
+    vertical-align: bottom;
+}
+
+.card {
+    display: inline-block;
+    position: absolute;
+    vertical-align: bottom;
+    overflow: hidden;
+}
+
+.rect {
+    position: absolute;
+}
+
+.text-field {
+    position: absolute;
+    width: 100%;
+}
+
+.deck {
+    position: relative;
+}
+
+.markdown-italic {
+    font-style: italic;
+}
+
+.markdown-bold {
+    font-weight: bold;
+}
+
+.icon-inline {
+    vertical-align: bottom;
+}
+
+* {
+    font-family: verdana;
+    margin: 0;
+    padding: 0;
+}

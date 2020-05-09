@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<deckbuilder>
+	<style
+		name="my_style"
+		font="verdana"
+		size="35"
+		color="#337733"
+		halign="center"
+		valign="center"
+	/>
+	
+	<style
+		name="large_style"
+		font="verdana"
+		size="72"
+		color="#333333"
+		halign="center"
+		valign="center"
+	/>
+	
+	<inline name="heart" src="heart.png" offset-y="2" />
+	
+	<deck name="mydeck" width="400" height="600" scale="1.5">
+		<cards>
+			<card text="Give **2** @heart" cost="2" id="1" tags="simple" />
+			<card text="Give **1** @heart" cost="1" id="2" tags="simple" />
+			<card text="Spend **1** @heart to give **3** @heart" cost="3" id="3" tags="complex" />
+			
+			<google-sheet key="1jETidoy2203QMhEvAmFUvFKOXSiyGVZkELJXIrjDBJo" sheet="mydeck_cards" />
+			
+			<render>
+				<set-name value="Card #${card.id}" />
+				<set-description value="Costs ${card.cost} to play" />
+			
+				<face>
+					<draw-rect x="0" y="0" width="400" height="600" color="#000000" />
+					<draw-rect x="10" y="10" width="380" height="580" color="#ffffff" line-color="#ff0000" line-width="2" />
+					
+					<draw-image x="200" y="90" align-x="0.5" align-y="0.5" src="heart-big.png" />
+					
+					<draw-text x="20" y="150" width="360" height="450" style="my_style" text="${card.text}" />
+					<draw-text x="100" y="40" width="200" height="100" style="large_style" text="${card.cost}" />
+					
+					<for-each var="tag" in="words(card.tags)">
+						<draw-image x="350" y="550" align-x="0.5" align-y="0.5" src="tag_${tag}.png" />
+					</for-each>
+				</face>
+			</render>
+		</cards>
+		
+		<back-default>
+			<draw-rect x="0" y="0" width="400" height="600" color="#000000" />
+			<draw-rect x="10" y="10" width="380" height="580" color="#ff88ff" />
+			<draw-text x="100" y="200" width="200" height="200" style="large_style" text="MY&#xA;CARD" />
+		</back-default>
+	
+		<face-hidden>
+			<draw-rect x="0" y="0" width="400" height="600" color="#000000" />
+			<draw-rect x="10" y="10" width="380" height="580" color="#ffffff" />
+			<draw-text x="100" y="200" width="200" height="200" style="large_style" text="?" />
+		</face-hidden>
+	</deck>	
+</deckbuilder>

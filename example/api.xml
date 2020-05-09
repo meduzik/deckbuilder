@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<deckbuilder>
+	<!--
+	Text styles are used to render text on your cards.
+	They have the following attributes:
+	
+		name (required): the name of your style, must be unique across the file.
+			Must consist of letters, digits and underscores and start with a letter.
+			
+		parent (optional): the name of the parent style.
+			Any attribute you do not specify will be inherited from the parent style.
+			
+		font (optional): the name of the font, as the browser interprets it.
+			Refer to https://developer.mozilla.org/en-US/docs/Web/CSS/font-family
+			If you need quotes inside your font name, use &quot;, like this:
+				font="&quot;Times New Roman&quot;"
+			Defaults to empty string (whatever your browser thinks is a good default font).
+			
+		size (optional): the size of the text, in pixels
+			Defaults to 20.
+		
+		color (optional): the color of the text, as a hexidecimal number #RRGGBB or #AARRGGBB for a color with transparency.
+			Defaults to black.
+		
+		halign (optional): horizontal alignment of the text.
+			Must be one of the values 'left', 'center', 'right', or 'justify'.
+			Defaults to 'left'.
+			
+		valign (optional): vertical alignment of the text.
+			Must be one of the values 'top', 'center', 'bottom'.
+			Defaults to 'top'.
+			
+		bold (optional): make the text bold, 'true' for yes, 'false' for no
+			Defaults to 'false'
+			
+		italic (optional): make the text italicized, 'true' for yes, 'false' for no
+			Defaults to 'false'
+			
+		underline (optional): underline the text, 'true' for yes, 'false' for no
+			Defaults to 'false'
+			
+		padding (optional): space in pixels between text field border and the text.
+			Use when you make your text field too tight (e.g. touching card borders) and you want to add some free space.
+			Defaults to 0.
+			
+		paragraph_spacing (optional): space in pixels between two consequtive paragraphs of text.
+			To create paragraphs, insert two line breaks in your source text (an empty line).
+			Defaults to 0.
+	-->
+	<style
+		name="my_style"
+		font="verdana"
+		size="35"
+		color="#337733"
+		halign="center"
+		valign="center"
+	/>
+	
+	<style
+		name="large_style"
+		font="verdana"
+		size="72"
+		color="#333333"
+		halign="center"
+		valign="center"
+	/>
+	
+	<!--
+	Inline symbols allow you to insert inline images into text fields by replacing "@symbolname" in the text
+	with an image
+	They have the following attributes:
+		
+		name (required): the name of your inline symbol, must be unique across the file.
+			If you name your inline symbol "xyz" then any occurence of @xyz in a text field will be replaced
+			with your image.
+			Must consist of letters, digits and underscores and start with a letter.
+			
+		src (required): the path of the image
+			If this is a relative path, it is assumed to be relative to this xml file.
+			For example, if you put your heart.png symbol file along this api.xml, then simply use "heart.png" as
+			your src.
+			
+		offset-y (optional): for how much pixels the image should be moved up (-) or down (+).
+			If you need to fine-tune how your symbol aligns with the text, use this parameter.	
+	-->
+	<inline name="heart" src="heart.png" offset-y="2" />
+	
+	<!--
+	Deck descriptions are the main objects of this file. Each one describes how to construct a deck.
+	
+		name (required): the name of this deck, must be unique across the file.
+			Must consist of letters, digits and underscores and start with a letter.
+			
+		width (required): width, in pixels, of one card in the deck
+		
+		height (required): height, in pixels, of one card in the deck
+		
+		scale (optional): the final scale of this deck in the Tabletop Simulator
+			Defaults to 1.
+	-->
+	<deck name="mydeck" width="400" height="600" scale="1.5">
+		<!--
+		Cards block defines a collection of cards in your deck, their source data, and how to render them.
+		If you have blocks of cards with completely different rendering in your decks (like planeswalkers vs spells in MtG),
+		you may use multiple <cards> elements in your deck.
+		-->
+		<cards>
+			<!--
+			You can directly embed some cards data with the <card> element.
+			You are free to add as many attributes as you like, but the following attributes have special meaning:
+			
+				count: if present and is an integer, determines the number of copies of that cards in the final deck
+				
+				name: if present, this will be assigned as a card name in the TTS (shows when you hover over a face up card)
+				
+				description: if present, this will be assigned as a card description in the TTS (shows when you hover over a face up card for a few seconds)
+			-->
+			<card text="Give **2** @heart" cost="2" id="1" tags="simple" />
+			<card text="Give **1** @heart" cost="1" id="2" tags="simple" />
+			<card text="Spend **1** @heart to give **3** @heart" cost="3" id="3" tags="complex" />
+			
+			<!--
+			This element allows you to import a collection of cards from a Google Spreadsheet.
+			
+				key (required): the id of your Google Spreadsheet.
+					When you have your document open, the key is what shows between /d/ and /edit in the url.
+					Your document's settings must be set to "anyone with a link can view" for the tool to have
+					access.
+					
+				sheet (required): the sheet name in the document.
+					The exact text on the tab in the bottom of the screen, like "Sheet1"
+					
+			The first line of the sheet will be interpreted as a header.
+			Open the following link to see how you should organize your data:
+			https://docs.google.com/spreadsheets/d/1jETidoy2203QMhEvAmFUvFKOXSiyGVZkELJXIrjDBJo/edit?usp=sharing
+			
+			NOTE! Your document's settings must be set to "anyone with a link can view" for the tool to have
+			access.
+			
+			Columns count, name, and description are special and treated exactly as in <card>:				
+				count: if present and is an integer, determines the number of copies of that cards in the final deck
+				
+				name: if present, this will be assigned as a card name in the TTS (shows when you hover over a face up card)
+				
+				description: if present, this will be assigned as a card description in the TTS (shows when you hover over a face up card for a few seconds)
+			-->
+			<google-sheet key="1jETidoy2203QMhEvAmFUvFKOXSiyGVZkELJXIrjDBJo" sheet="mydeck_cards" />
+			
+			<!--
+			Render element describes a template which is then applied to each card in your data set.
+			-->
+				
+			<!--
+			Variable substitutions.
+			
+			To use the data from your card, you can insert the ${expression} construct in any of the attributes.
+			Expression can constructed with variables, functions and literals.
+		
+			You can use certain functions to process your data inside expressions:
+			
+				words(s): returns a list of words (seprated by spaces) in the string s
+					words('this is a test') -> ['this', 'is', 'a', 'test']
+				
+				repeat(s, n): returns a new string where s is repeated n times
+					repeat('X', 4) -> 'XXXX'
+					
+			For example:
+				${x} returns a value of the x variable
+				${card.text} returns a value of the card's 'text' attribute
+				${words(card.tags)} returns a list of all words in the card's 'tags' attribute
+			-->
+			<render>
+				<!--
+				If your card's data doesn't have the "name" attribute, you can use the following element to set it.
+				-->
+				<set-name value="Card #${card.id}" />
+				<!--
+				If your card's data doesn't have the "description" attribute, you can use the following element to set it.
+				-->
+				<set-description value="Costs ${card.cost} to play" />
+			
+				<!--
+				<face> element specifies a set of instruction the tool must follow to render a face of a card.
+				-->
+				<face>
+					<!--
+					Draw a rectangle.
+					
+						x (required): the position of the left border of the rectangle within the card, in pixels
+						
+						y (required): the position of the top border of the rectangle within the card, in pixels
+						
+						width (required): the width of the rectangle, in pixels
+						
+						height (required): the height of the rectangle, in pixels
+						
+						color (optional): the fill color of the rectangle, as a hexidecimal number #RRGGBB or #AARRGGBB for a color with transparency.
+							If not set, then the rectangle will not be filled.
+							
+						line-color (optional): the line color of the rectangle, as a hexidecimal number #RRGGBB or #AARRGGBB for a color with transparency.
+							If not set, then the rectangle will not have outline.
+							
+						line-width (optional): the width of the outline of the rectangle, in pixels.
+							Defaults to 1.
+					-->
+					<draw-rect x="0" y="0" width="400" height="600" color="#000000" />
+					<draw-rect x="10" y="10" width="380" height="580" color="#ffffff" line-color="#ff0000" line-width="2" />
+					
+					<!--
+					Draw an image
+					
+						x (required): the horizontal position of the image, in pixels
+						
+						y (required): the vertical position of the image, in pixels
+						
+						src (required): the path to the image file, relative to this XML
+						
+						align-x (optional): the horizontal alignment of the image, relative to its x attribute.
+							0 means left aligned, 0.5 means center aligned, 1 means right aligned.
+							Defaults to 0.
+						
+						align-y (optional): the vertical alignment of the image, relative to its y attribute.
+							0 means top aligned, 0.5 means center aligned, 1 means bottom aligned.
+							Defaults to 0.
+					-->
+					<draw-image x="200" y="90" align-x="0.5" align-y="0.5" src="heart-big.png" />
+					
+					<!--
+					Draw a text field
+					
+						x (required): the position of the left border of the text field, in pixels
+						
+						y (required): the position of the top border of the text field, in pixels
+						
+						width (required): the horizontal size of the text field, in pixels
+						
+						height (required): the vertical size of the text field, in pixels
+						
+						style (required): the text style name that you declared previously in this xml file
+						
+						text (required): the text to print in this text field
+					-->
+					<draw-text x="20" y="150" width="360" height="450" style="my_style" text="${card.text}" />
+					<draw-text x="100" y="40" width="200" height="100" style="large_style" text="${card.cost}" />
+					
+					<!--
+					If you need to execute something for each element in a list, you can use the <for-each> element.
+					
+						var (required): the name of the variable to set to each value in the list
+						
+						in (required): the list of things to iterate over.
+							You do not need to use ${} in the "in" attribute.
+						
+					The following example iterates over each tag in card's tags,
+					and draws an image for each one.
+					-->
+					<for-each var="tag" in="words(card.tags)">
+						<draw-image x="350" y="550" align-x="0.5" align-y="0.5" src="tag_${tag}.png" />
+					</for-each>
+				</face>
+			</render>
+		</cards>
+		<!--
+		If you want to render the same back for each card, you can use the <back-default> element.
+		-->	
+		<back-default>
+			<!-- 
+			This element uses the same set of instructions as the card rendering,
+			but it cannot access the card variable, as there is one shared back image for all the cards.
+			-->
+			<draw-rect x="0" y="0" width="400" height="600" color="#000000" />
+			<draw-rect x="10" y="10" width="380" height="580" color="#ff88ff" />
+			<draw-text x="100" y="200" width="200" height="200" style="large_style" text="MY&#xA;CARD" />
+		</back-default>
+	
+		<!--
+		If you want to have a special rendering for hidden card when it is in someone else's hand in the TTS,
+		you should use the <face-hidden> element.
+		-->
+		<face-hidden>
+			<!-- 
+			This element uses the same set of instructions as the card rendering,
+			but it cannot access the card variable, as there is one shared hidden card image for all the cards.
+			-->
+			<draw-rect x="0" y="0" width="400" height="600" color="#000000" />
+			<draw-rect x="10" y="10" width="380" height="580" color="#ffffff" />
+			<draw-text x="100" y="200" width="200" height="200" style="large_style" text="?" />
+		</face-hidden>
+	</deck>
+	
+</deckbuilder>
