@@ -24,10 +24,15 @@ def convert_card(card: CardInfo):
 		"description": card.description
 	}
 
+def add_slash(s: str) -> str:
+	if s[0] == '/':
+		return s
+	return '/' + s
+
 def convert_sheet(sheet: DeckSheetInfo):
 	return {
-		"face": sheet.face,
-		"back": sheet.back,
+		"face": "file://" + add_slash(sheet.face),
+		"back": "file://" + add_slash(sheet.back),
 		"count": sheet.count,
 		"width": sheet.width,
 		"height": sheet.height,
