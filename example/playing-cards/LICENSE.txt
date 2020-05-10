@@ -1,0 +1,12 @@
+PUBLIC DOMAIN
+
+---
+
+https://code.google.com/archive/p/vector-playing-cards/
+
+---
+
+Poker cards made using Inkscape
+
+A full set of poker playing cards created using vector graphics. The .SVG source for each card is available as well as a high resolution rasterized .PNG version. These images are released into the public domain - attribution is appreciated but not required.
+From Playing Cards From Playing Cards From Playing Cards 

@@ -55,3 +55,5 @@ Click **BUILD DECKS!**, then wait.
 # Attribution
 
 The examples use icons from the [icons8.com](https://icons8.com) website <3.
+
+The examples use [vector playing cards](https://code.google.com/archive/p/vector-playing-cards/).

@@ -82,7 +82,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 				raise RuntimeError("no 'deck' param")
 			deck = query['deck'][0]
 			print(f"REQUESTED BUILDING {json.dumps(deck)}")
-			db = DeckInstantiator(XMLParser().parse(deck)).run()
+			db = DeckInstantiator(XMLParser(deck).parse()).run()
 			deck_info = DeckRenderer(render_cfg, os.path.join(os.path.dirname(deck), CACHE_PATH, ".cache/" + sha1(deck))).render(db)
 			print(f"BUILDING {json.dumps(deck)} SUCCESSFULLY COMPLETED!")
 			if 'preview' in query:

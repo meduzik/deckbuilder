@@ -92,6 +92,10 @@ google_scheme = ElementScheme({
 	"sheet": parse_string,
 }, ["key", "sheet"])
 
+imageset_scheme = ElementScheme({
+	"path": parse_string
+}, ["path"])
+
 draw_text_scheme = ElementScheme({
 	"x": parse_expr,
 	"y": parse_expr,
@@ -139,12 +143,17 @@ for_scheme = ElementScheme({
 
 
 class XMLParser:
-	def __init__(self):
+	def __init__(self, path: str):
+		self.path: str = path
+		self.base_path: str = os.path.dirname(path)
 		self.styles: Dict[str, Dict[str, any]] = dict()
 		self.inlines: Dict[str, InlineSymbol] = dict()
 		self.decks: Dict[str, DeckTemplate] = dict()
 		self.pending_tasks: List[Promise[Any]] = []
 		self.resolved_styles: Dict[str, Optional[TextStyle]] = dict()
+
+	def resolve_path(self, path: str) -> str:
+		return os.path.join(self.base_path, path)
 
 	def parse_scheme(self, elt: Element, scheme: ElementScheme):
 		params: Dict[str, Any] = dict()
@@ -171,11 +180,11 @@ class XMLParser:
 		loc = self.getloc(elt)
 		raise ValidateError(f"unexpected child <{elt.tag}> at line {loc[0]}, col {loc[1]}")
 
-	def parse(self, path: str) -> DeckContext:
-		xml: Element = ElementTree.parse(path, parser=LineNumberingParser()).getroot()
+	def parse(self) -> DeckContext:
+		xml: Element = ElementTree.parse(self.path, parser=LineNumberingParser()).getroot()
 		self.process_element(xml, self.parse_root)
 		Promise.all(self.pending_tasks).run_until_completion()
-		ctx = DeckContext(os.path.dirname(path))
+		ctx = DeckContext(self.base_path)
 		for name, inline in self.inlines.items():
 			ctx.inlines[name] = inline
 		for name, style in self.styles.items():
@@ -254,6 +263,8 @@ class XMLParser:
 				self.process_element(elt, self.parse_card_data, block)
 			elif elt.tag == "google-sheet":
 				self.process_element(elt, self.parse_google_sheet, block)
+			elif elt.tag == "image-set":
+				self.process_element(elt, self.parse_image_set, block)
 			elif elt.tag == "render":
 				stmt = self.process_element(elt, self.parse_stmt_block)
 				block.renderers.append(stmt)
@@ -274,6 +285,31 @@ class XMLParser:
 			self.pending_tasks.append(run())
 		except BaseException as err:
 			raise ValidateError(f"failed to download google spreadsheet: {err}")
+
+	def parse_image_set(self, imageset_elt: Element, block: CardBlock):
+		params = self.parse_scheme(imageset_elt, imageset_scheme)
+		try:
+			path = params['path']
+			def worker(process: TaskProcess):
+				data = []
+				base_path = self.resolve_path(path)
+				for root, dirs, files in os.walk(base_path):
+					for file in files:
+						if file.endswith(".png") or file.endswith(".jpg") or file.endswith(".jpeg"):
+							data.append({
+								"path": os.path.abspath(os.path.join(root, file)),
+								"filename": file,
+								"name": os.path.splitext(file)[0]
+							})
+				return data
+			@asyncify
+			def run():
+				data = yield run_threaded(f"Collecting images in {path}", worker)
+				for row in data:
+					self.add_card(block, row)
+			self.pending_tasks.append(run())
+		except BaseException as err:
+			raise ValidateError(f"failed to load image  set: {err}")
 
 	def add_card(self, block: CardBlock, data: Dict[str, str]):
 		card_data = CardData()

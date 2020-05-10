@@ -1,7 +1,6 @@
-Everything in this repository except *.png files in the example directory is redistributed under the following MIT License.
-example/*.png files are covered by https://icons8.com/license
+Except where stated otherwise, the following MIT license applies:
 
------
+----
 
 Copyright (c) 2020 Denis Stepanov
 

@@ -18,7 +18,7 @@
 		valign="center"
 	/>
 	
-	<inline name="heart" src="heart.png" offset-y="2" />
+	<inline name="heart" src="icons/heart.png" offset-y="2" />
 	
 	<deck name="mydeck" width="400" height="600" scale="1.5">
 		<cards>
@@ -32,13 +32,13 @@
 					<draw-rect x="0" y="0" width="400" height="600" color="#000000" />
 					<draw-rect x="10" y="10" width="380" height="580" color="#ffffff" line-color="#ff0000" line-width="2" />
 					
-					<draw-image x="200" y="90" align-x="0.5" align-y="0.5" src="heart-big.png" />
+					<draw-image x="200" y="90" align-x="0.5" align-y="0.5" src="icons/heart-big.png" />
 					
 					<draw-text x="20" y="150" width="360" height="450" style="my_style" text="${card.text}" />
 					<draw-text x="100" y="40" width="200" height="100" style="large_style" text="${card.cost}" />
 					
 					<for-each var="tag" in="words(card.tags)">
-						<draw-image x="350" y="550" align-x="0.5" align-y="0.5" src="tag_${tag}.png" />
+						<draw-image x="350" y="550" align-x="0.5" align-y="0.5" src="icons/tag_${tag}.png" />
 					</for-each>
 				</face>
 			</render>

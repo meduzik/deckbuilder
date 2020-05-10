@@ -298,6 +298,7 @@ class DeckInstantiator:
 	def build_face(self, deck: Deck, template: FaceTemplate) -> CardFaceTemplate:
 		face = deck.make_face()
 		exec = Executor(self.ctx, None, face)
+		exec.env['deck'] = deck.data
 		exec.execute(template.block)
 		face_unique = face.render()
 		if face_unique in self.unique_faces:
@@ -314,6 +315,7 @@ class DeckInstantiator:
 			card.name = card_data.data['description']
 		exec = Executor(self.ctx, card, None)
 		exec.env['card'] = card_data.data
+		exec.env['deck'] = deck.data
 		try:
 			for renderer in block.renderers:
 				exec.execute(renderer)

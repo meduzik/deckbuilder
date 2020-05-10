@@ -101,7 +101,7 @@
 		offset-y (optional): for how much pixels the image should be moved up (-) or down (+).
 			If you need to fine-tune how your symbol aligns with the text, use this parameter.	
 	-->
-	<inline name="heart" src="heart.png" offset-y="2" />
+	<inline name="heart" src="icons/heart.png" offset-y="2" />
 	
 	<!--
 	Deck descriptions are the main objects of this file. Each one describes how to construct a deck.
@@ -193,6 +193,14 @@
 							"card.text" will be equal to the string "Give **2** @heart"
 							"card.cost" will be equal to the string "2"
 							and so on
+							
+					deck: contains the following attributes of the deck:
+					
+						width: width attribute of the deck
+						
+						height: height attribute of the deck
+						
+						name: name attribute of the deck
 					
 				To change the value of a variable, you use the <set-var> element:
 				-->
@@ -311,7 +319,7 @@
 							0 means top aligned, 0.5 means center aligned, 1 means bottom aligned.
 							Defaults to 0.
 					-->
-					<draw-image x="200" y="90" align-x="0.5" align-y="0.5" src="heart-big.png" />
+					<draw-image x="200" y="90" align-x="0.5" align-y="0.5" src="icons/heart-big.png" />
 					
 					<!--
 					Draw a text field
@@ -341,7 +349,7 @@
 					and draws an image for each one.
 					-->
 					<for-each var="tag" in="words(card.tags)">
-						<draw-image x="350" y="550" align-x="0.5" align-y="0.5" src="tag_${tag}.png" />
+						<draw-image x="350" y="550" align-x="0.5" align-y="0.5" src="icons/tag_${tag}.png" />
 					</for-each>
 					
 					<!--
@@ -356,7 +364,7 @@
 							Otherwise, these instructions are skipped.
 					-->
 					<if condition="contains(card.tags,'complex')">
-						<draw-image x="50" y="50" align-x="0.5" align-y="0.5" src="tag_complex.png" />
+						<draw-image x="50" y="50" align-x="0.5" align-y="0.5" src="icons/tag_complex.png" />
 					</if>
 					
 					<!--
@@ -422,6 +430,7 @@
 				</face>
 			</render>
 		</cards>
+		
 		<!--
 		If you want to render the same back for each card, you can use the <back-default> element.
 		-->	
@@ -450,4 +459,27 @@
 		</face-hidden>
 	</deck>
 	
+	<deck name="playing-cards" width="500" height="726" scale="1.5">
+		<cards>
+			<!--
+			<image-set> collects all images in a folder and generates the following card data for each image:
+				
+				filename: the name of the card file, like "6_clubs.png"
+				path: the full path to the card file that can be directly used as an image source
+				name: the name of the card file without the extension, like "6_clubs"
+			
+			-->
+			<image-set path="playing-cards" />
+			
+			<render>
+				<face>
+					<draw-image x="round(deck.width / 2)" y="round(deck.height / 2)" align-x="0.5" align-y="0.5" src="${card.path}" />
+				</face>
+			</render>
+		</cards>
+		
+		<back-default>
+			<draw-rect x="0" y="0" width="deck.width" height="deck.height" color="#000000" />
+		</back-default>
+	</deck>	
 </deckbuilder>

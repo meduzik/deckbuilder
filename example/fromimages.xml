@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<deckbuilder>
+	<!--
+	This example shows how to build a deck from a collection of card images.
+	The images are in ./playing-cards folder
+	-->
+	<deck name="playing-cards" width="500" height="726" scale="1.5">
+		<cards>
+			<image-set path="playing-cards" />
+			
+			<render>
+				<face>
+					<draw-image x="round(deck.width / 2)" y="round(deck.height / 2)" align-x="0.5" align-y="0.5" src="${card.path}" />
+				</face>
+			</render>
+		</cards>
+		
+		<back-default>
+			<draw-rect x="0" y="0" width="deck.width" height="deck.height" color="#000000" />
+		</back-default>
+	</deck>	
+</deckbuilder>

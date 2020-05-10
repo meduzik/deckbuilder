@@ -161,6 +161,11 @@ class Deck:
 		self.hidden_face: Optional[CardFaceTemplate] = None
 		self.default_back: Optional[CardFaceTemplate] = None
 		self.scale: float = 1
+		self.data = {
+			"name": name,
+			"width": size[0],
+			"height": size[1]
+		}
 
 	def set_default_back(self, face: Optional['CardFaceTemplate']):
 		self.default_back = face
