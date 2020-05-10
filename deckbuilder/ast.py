@@ -1,4 +1,4 @@
-from typing import TypeVar, List, Tuple, Optional
+from typing import TypeVar, List, Tuple, Optional, Any
 
 T = TypeVar("T")
 
@@ -8,9 +8,9 @@ class Expr:
 		pass
 
 class ExprLit(Expr):
-	def __init__(self, s: str):
+	def __init__(self, s: Any):
 		super().__init__()
-		self.s: str = s
+		self.s: Any = s
 
 class ExprID(Expr):
 	def __init__(self, s: str):
@@ -119,3 +119,73 @@ class StmtForEach(Stmt):
 		self.var: str = var
 		self.in_expr: Expr = in_expr
 		self.body: StmtSequence = body
+
+class StmtIf(Stmt):
+	def __init__(
+			self,
+			location: Tuple[int, int],
+			condition: Expr,
+			body: StmtSequence
+	):
+		super().__init__(location)
+		self.condition: Expr = condition
+		self.body: StmtSequence = body
+
+class StmtWhile(Stmt):
+	def __init__(
+			self,
+			location: Tuple[int, int],
+			condition: Expr,
+			body: StmtSequence
+	):
+		super().__init__(location)
+		self.condition: Expr = condition
+		self.body: StmtSequence = body
+
+class StmtFor(Stmt):
+	def __init__(
+			self,
+			location: Tuple[int, int],
+			var: str,
+			kfrom: Expr,
+			kto: Expr,
+			step: Optional[Expr],
+			body: StmtSequence
+	):
+		super().__init__(location)
+		self.var: str = var
+		self.kfrom: Expr = kfrom
+		self.kto: Expr = kto
+		self.step: Optional[Expr] = step
+		self.body: StmtSequence = body
+
+class WhenBlock:
+	def __init__(
+			self,
+			location: Tuple[int, int],
+			condition: Expr,
+			body: StmtSequence
+	):
+		self.location: Tuple[int, int] = location
+		self.condition: Expr = condition
+		self.body: StmtSequence = body
+
+class StmtCase(Stmt):
+	def __init__(
+			self,
+			location: Tuple[int, int]
+	):
+		super().__init__(location)
+		self.whens: List[WhenBlock] = []
+		self.kelse: Optional[StmtSequence] = None
+
+class StmtSetVar(Stmt):
+	def __init__(
+			self,
+			location: Tuple[int, int],
+			var: str,
+			value: Expr
+	):
+		super().__init__(location)
+		self.var: str = var
+		self.value: Expr = value

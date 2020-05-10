@@ -15,11 +15,11 @@ def parse_nullable(fn, value):
 		return None
 	return fn(value)
 
-def parse_expr(value):
-	return exprparser.ExprParser(value).parse()
+def parse_fstring(value):
+	return exprparser.ExprParser(value).parse_all_fstring()
 
-def parse_expr_direct(value):
-	return exprparser.ExprParser(value).parse_direct()
+def parse_expr(value):
+	return exprparser.ExprParser(value).parse_all_expr()
 
 def parse_string(value):
 	return value

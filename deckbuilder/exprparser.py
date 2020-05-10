@@ -7,6 +7,54 @@ SpecialChars = frozenset("$")
 Whitespaces = frozenset(" \n\r\t")
 IdStartChar = frozenset("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_")
 IdChar = frozenset("0123456789") | IdStartChar
+Digits = frozenset("0123456789")
+
+
+CompareOps = frozenset(["=", "!=", "LT", "GT", "LE", "GE"])
+
+
+PrecedenceUnary = 40
+PrecedenceMul = 50
+PrecedenceAdd = 60
+PrecedenceAnd = 70
+PrecedenceOr = 80
+PrecedenceCompare = 90
+PrecedenceMax = 100
+
+
+EscapeDecode = {
+	"n": "\n",
+	"r": "\r",
+	"t": "\t",
+	"0": "\0",
+}
+
+SelfEscapeDecode = frozenset(",.~!@#$%^&*()_|-=\\/<>\"[]{}?;:'`")
+
+HexDigits = {
+	'0': 0,
+	'1': 1,
+	'2': 2,
+	'3': 3,
+	'4': 4,
+	'5': 5,
+	'6': 6,
+	'7': 7,
+	'8': 8,
+	'9': 9,
+	'a': 10,
+	'b': 11,
+	'c': 12,
+	'd': 13,
+	'e': 14,
+	'f': 15,
+	'A': 10,
+	'B': 11,
+	'C': 12,
+	'D': 13,
+	'E': 14,
+	'F': 15,
+}
 
 
 class ExprParser:
@@ -22,7 +70,7 @@ class ExprParser:
 	def advance(self):
 		self.pos += 1
 
-	def parse(self) -> Expr:
+	def parse_all_fstring(self) -> Expr:
 		pieces: List[Expr] = []
 		while True:
 			ch = self.peek()
@@ -33,6 +81,13 @@ class ExprParser:
 			else:
 				pieces.append(ExprLit(self.parse_plain()))
 		return ExprConcat(pieces)
+
+	def parse_all_expr(self) -> Expr:
+		expr = self.parse_expr()
+		self.skip_ws()
+		if self.peek() is not None:
+			self.error("unexpceted character")
+		return expr
 
 	def parse_special(self) -> Expr:
 		ch = self.peek()
@@ -59,12 +114,18 @@ class ExprParser:
 		self.advance()
 
 	def parse_expr(self) -> Expr:
-		expr = self.try_parse_expr()
+		return self.parse_expr_at(PrecedenceMax)
+
+	def parse_expr_at(self, prec: int) -> Expr:
+		expr = self.try_parse_expr_at(prec)
 		if expr is None:
 			self.error("expected expression")
 		return expr
 
 	def try_parse_expr(self) -> Optional[Expr]:
+		return self.try_parse_expr_at(PrecedenceMax)
+
+	def try_parse_expr_at(self, prec: int) -> Optional[Expr]:
 		prim = self.try_parse_prim()
 		if not prim:
 			return None
@@ -79,13 +140,49 @@ class ExprParser:
 				if len(identifier) == 0:
 					self.error("expected identifier")
 				expr = ExprField(expr, identifier)
+			elif prec >= PrecedenceAdd and (ch == '+' or ch == '-'):
+				self.advance()
+				rhs = self.parse_expr_at(PrecedenceAdd - 1)
+				expr = ExprCall(ch, [expr, rhs])
+			elif prec >= PrecedenceMul and (ch == '*' or ch == '/' or ch == '%'):
+				self.advance()
+				rhs = self.parse_expr_at(PrecedenceMul - 1)
+				expr = ExprCall(ch, [expr, rhs])
+			elif prec >= PrecedenceCompare and (ch in CompareOps):
+				self.advance()
+				rhs = self.parse_expr_at(PrecedenceCompare - 1)
+				expr = ExprCall(ch, [expr, rhs])
+			elif  ch in IdStartChar:
+				tok = self.peek_token()
+				if prec >= PrecedenceOr and tok == "or":
+					self.parse_id()
+					rhs = self.parse_expr_at(PrecedenceOr - 1)
+					expr = ExprCall(tok, [expr, rhs])
+				elif prec >= PrecedenceAnd and tok == "and":
+					self.parse_id()
+					rhs = self.parse_expr_at(PrecedenceOr - 1)
+					expr = ExprCall(tok, [expr, rhs])
+				elif prec >= PrecedenceCompare and tok in CompareOps:
+					self.parse_id()
+					rhs = self.parse_expr_at(PrecedenceCompare - 1)
+					expr = ExprCall(tok, [expr, rhs])
+				else:
+					break
 			else:
 				break
 		return expr
 
+	def peek_token(self) -> str:
+		pos = self.pos
+		name = self.parse_id()
+		self.pos = pos
+		return name
+
 	def try_parse_prim(self) -> Optional[Expr]:
 		self.skip_ws()
 		ch = self.peek()
+		if ch is None:
+			return None
 		if ch in IdStartChar:
 			name = self.parse_id()
 			self.skip_ws()
@@ -107,20 +204,86 @@ class ExprParser:
 				return ExprCall(name, args)
 			else:
 				return ExprID(name)
+		elif ch in Digits:
+			return self.parse_number()
+		elif ch == '-':
+			self.advance()
+			r = self.parse_expr_at(PrecedenceUnary)
+			return ExprCall("negate", [r])
+		elif ch == '#':
+			self.advance()
+			r = self.parse_expr_at(PrecedenceUnary)
+			return ExprCall("len", [r])
 		elif ch == "'":
 			self.advance()
 			begin = self.pos
+			contents = []
 			while True:
 				ch = self.peek()
 				if ch == "'":
 					self.advance()
 					break
+				elif ch == '\\':
+					self.advance()
+					contents.append(self.parse_esc())
 				elif ch is None:
 					self.error("unterminated string literal")
+				contents.append(ch)
 				self.advance()
-			contents = self.s[begin: self.pos - 1]
-			return ExprLit(contents)
+			return ExprLit(''.join(contents))
 		return None
+
+	def parse_esc(self) -> str:
+		ch = self.peek()
+		if ch is None:
+			self.error("expected character after \\")
+		if ch in SelfEscapeDecode:
+			self.advance()
+			return ch
+		elif ch in EscapeDecode:
+			self.advance()
+			return EscapeDecode[ch]
+		elif ch == 'x':
+			self.advance()
+			return self.parse_esc_hex(2)
+		elif ch == 'u':
+			self.advance()
+			return self.parse_esc_hex(4)
+		elif ch == 'U':
+			self.advance()
+			return self.parse_esc_hex(8)
+		else:
+			self.error("invalid escape sequence")
+
+	def parse_esc_hex(self, n: int) -> str:
+		acc: int = 0
+		for _ in range(n):
+			ch = self.peek()
+			if ch not in HexDigits:
+				self.error("expected more hexidecimal digits")
+			acc = acc * 16 + HexDigits[ch]
+		return chr(acc)
+
+	def parse_number(self) -> Expr:
+		begin = self.pos
+		ch = self.peek()
+		if ch == '0':
+			self.advance()
+		else:
+			while True:
+				ch = self.peek()
+				if ch not in Digits:
+					break
+				self.advance()
+		if self.peek() == '.':
+			self.advance()
+			while True:
+				ch = self.peek()
+				if ch not in Digits:
+					break
+				self.advance()
+			return ExprLit(float(self.s[begin: self.pos]))
+		return ExprLit(int(self.s[begin: self.pos]))
 
 	def parse_id(self) -> str:
 		begin: int = self.pos
@@ -150,10 +313,3 @@ class ExprParser:
 				break
 			self.advance()
 		return self.s[begin:self.pos]
-
-	def parse_direct(self) -> Expr:
-		expr = self.parse_expr()
-		self.skip_ws()
-		if self.peek() is not None:
-			self.error("unexpceted character")
-		return expr

@@ -1,10 +1,12 @@
 import json
+import math
 import re
 from typing import Optional, Dict, Any, Callable, TypeVar
 
 from deckbuilder import textparser
 from deckbuilder.ast import Stmt, StmtSequence, StmtDrawRect, StmtDrawText, StmtDrawImage, StmtFace, Expr, ExprLit, \
-	ExprConcat, ExprField, ExprID, StmtForEach, ExprCall, StmtSetName, StmtSetDescription
+	ExprConcat, ExprField, ExprID, StmtForEach, ExprCall, StmtSetName, StmtSetDescription, StmtSetVar, StmtIf, \
+	StmtWhile, StmtFor, StmtCase
 from deckbuilder.context import DeckContext, DeckTemplate, FaceTemplate, CardData, CardBlock
 from deckbuilder.core import CardTemplate, CardFaceTemplate, Deckbuilder, Deck
 import deckbuilder.validators as validators
@@ -13,9 +15,29 @@ from deckbuilder.utils import ValidateError, encode
 
 T = TypeVar("T")
 
+def to_any(val):
+	return val
 
 def to_string(val):
 	return str(val)
+
+def to_list(val):
+	if not isinstance(val, list):
+		raise ValidateError("expected list")
+	return val
+
+def to_number(val):
+	if isinstance(val, int):
+		return val
+	if isinstance(val, float):
+		return val
+	try:
+		return int(val)
+	except ValueError:
+		try:
+			return float(val)
+		except ValueError:
+			raise ValidateError("expected integer")
 
 def to_int(val):
 	try:
@@ -27,15 +49,43 @@ def to_int(val):
 re_split = re.compile("(?:\".*?\"|\S)+")
 
 funcs = {
-	"words": {
-		"args": [to_string],
-		"call": lambda s: re_split.findall(s)
-	},
-	"repeat": {
-		"args": [to_string, to_int],
-		"call": lambda s, i: s * i
-	}
+	"words": {"args": [to_string], "call": lambda s: re_split.findall(s)},
+	"split": {"args": [to_string, to_string], "call": lambda s, n: s.split(n)},
+	"join": {"args": [to_list, to_string], "call": lambda lst, s: s.join(lst)},
+	"repeat": {"args": [to_string, to_int], "call": lambda s, i: s * i},
+	"substring": {"args": [to_string, to_int, to_int], "call": lambda s, b, e: s[b: e]},
+	"contains": {"args": [to_string, to_string], "call": lambda s, n: len(re.findall(n, s)) > 0},
+	"negate": {"args": [to_number], "call": lambda s: -s},
+	"concat": {"args": [to_string, to_string], "call": lambda s1, s2: s1 + s2},
+	"tostr": {"args": [to_string], "call": lambda s: s},
+	"toint": {"args": [to_int], "call": lambda s: s},
+	"tonumber": {"args": [to_number], "call": lambda s: s},
+
+	"abs": {"args": [to_number], "call": lambda x: abs(x)},
+	"floor": {"args": [to_number], "call": lambda x: math.floor(x)},
+	"ceil": {"args": [to_number], "call": lambda x: math.ceil(x)},
+	"round": {"args": [to_number], "call": lambda x: math.floor(x + 0.5)},
+	"min": {"args": [to_number, to_number], "call": lambda x, y: min(x, y)},
+	"max": {"args": [to_number, to_number], "call": lambda x, y: max(x, y)},
+
+	"len": {"args": [to_list], "call": lambda s: len(s)},
+	"+": {"args": [to_number, to_number], "call": lambda x, y: x + y},
+	"-": {"args": [to_number, to_number], "call": lambda x, y: x - y},
+	"*": {"args": [to_number, to_number], "call": lambda x, y: x * y},
+	"/": {"args": [to_number, to_number], "call": lambda x, y: x / y},
+	"%": {"args": [to_number, to_number], "call": lambda x, y: x % y},
+	"=": {"args": [to_any, to_any], "call": lambda x, y: 1 if x == y else 0},
+	"!=": {"args": [to_any, to_any], "call": lambda x, y: 1 if x != y else 0},
+	"LT": {"args": [to_any, to_any], "call": lambda x, y: 1 if x < y else 0},
+	"GT": {"args": [to_any, to_any], "call": lambda x, y: 1 if x > y else 0},
+	"LE": {"args": [to_any, to_any], "call": lambda x, y: 1 if x <= y else 0},
+	"GE": {"args": [to_any, to_any], "call": lambda x, y: 1 if x >= y else 0},
+	"and": {"args": [to_number, to_number], "call": lambda x, y: 1 if x and y else 0},
+	"or": {"args": [to_number, to_number], "call": lambda x, y: 1 if x or y else 0},
 }
+
+
+MaxFuel = 50000
 
 
 class Executor:
@@ -44,8 +94,12 @@ class Executor:
 		self.card: Optional[CardTemplate] = card
 		self.face: Optional[CardFaceTemplate] = face
 		self.env: Dict[str, Any] = dict()
+		self.fuel: int = MaxFuel
 
 	def execute(self, stmt: Stmt):
+		self.fuel -= 1
+		if self.fuel <= 0:
+			raise ValidateError("evaluation took too many steps")
 		try:
 			if isinstance(stmt, StmtSequence):
 				for child in stmt.stmts:
@@ -99,13 +153,10 @@ class Executor:
 			elif isinstance(stmt, StmtForEach):
 				var = stmt.var
 				old_val = self.env.get(var, None)
-				container = self.compute(stmt.in_expr)
-				if isinstance(container, list):
-					for elt in container:
-						self.env[var] = elt
-						self.execute(stmt.body)
-				else:
-					raise ValidateError(f"attempt to iterate over {type(container).__class__.__name__}")
+				container = to_list(self.compute(stmt.in_expr))
+				for elt in container:
+					self.env[var] = elt
+					self.execute(stmt.body)
 				self.env[var] = old_val
 			elif isinstance(stmt, StmtSetName):
 				card = self.get_card()
@@ -113,6 +164,46 @@ class Executor:
 			elif isinstance(stmt, StmtSetDescription):
 				card = self.get_card()
 				card.description = self.eval(stmt.value)
+			elif isinstance(stmt, StmtSetVar):
+				var = stmt.var
+				value = self.compute(stmt.value)
+				self.env[var] = value
+			elif isinstance(stmt, StmtIf):
+				if to_number(self.compute(stmt.condition)):
+					self.execute(stmt.body)
+			elif isinstance(stmt, StmtWhile):
+				while to_number(self.compute(stmt.condition)):
+					self.execute(stmt.body)
+			elif isinstance(stmt, StmtCase):
+				for when in stmt.whens:
+					if to_number(self.compute(when.condition)):
+						self.execute(when.body)
+						break
+				else:
+					if stmt.kelse is not None:
+						self.execute(stmt.kelse)
+			elif isinstance(stmt, StmtFor):
+				var = stmt.var
+				old_val = self.env.get(var, None)
+				kfrom = to_number(self.compute(stmt.kfrom))
+				to = to_number(self.compute(stmt.kto))
+				step = 1
+				if stmt.step:
+					step = to_number(self.compute(stmt.step))
+				value = kfrom
+				if step == 0:
+					raise ValidateError("step is 0")
+				while True:
+					if step > 0:
+						if value > to:
+							break
+					elif step < 0:
+						if value < to:
+							break
+					self.env[var] = value
+					self.execute(stmt.body)
+					value += step
+				self.env[var] = old_val
 			else:
 				raise ValidateError("invalid statement")
 		except ValidateError as ve:

@@ -19,7 +19,7 @@
 		size (optional): the size of the text, in pixels
 			Defaults to 20.
 		
-		color (optional): the color of the text, as a hexidecimal number #RRGGBB or #AARRGGBB for a color with transparency.
+		color (optional): the color of the text, as a hexidecimal number #RRGGBB or #RRGGBBAA for a color with transparency.
 			Defaults to black.
 		
 		halign (optional): horizontal alignment of the text.
@@ -63,6 +63,24 @@
 		color="#333333"
 		halign="center"
 		valign="center"
+	/>
+		
+	<style
+		name="large_style_1"
+		parent="large_style"
+		color="#ff4444"
+	/>
+	
+	<style
+		name="large_style_2"
+		parent="large_style"
+		color="#ff44ff"
+	/>
+	
+	<style
+		name="large_style_3"
+		parent="large_style"
+		color="#444444"
 	/>
 	
 	<!--
@@ -149,27 +167,97 @@
 			<!--
 			Render element describes a template which is then applied to each card in your data set.
 			-->
-				
-			<!--
-			Variable substitutions.
-			
-			To use the data from your card, you can insert the ${expression} construct in any of the attributes.
-			Expression can constructed with variables, functions and literals.
-		
-			You can use certain functions to process your data inside expressions:
-			
-				words(s): returns a list of words (seprated by spaces) in the string s
-					words('this is a test') -> ['this', 'is', 'a', 'test']
-				
-				repeat(s, n): returns a new string where s is repeated n times
-					repeat('X', 4) -> 'XXXX'
-					
-			For example:
-				${x} returns a value of the x variable
-				${card.text} returns a value of the card's 'text' attribute
-				${words(card.tags)} returns a list of all words in the card's 'tags' attribute
-			-->
 			<render>
+				<!--
+				Using expressions.
+				
+				Almost every attribute in the following element can be set with a computed value, based on card's data.
+				
+				The expression syntax is mostly very simple and close to lua or python.
+				-->
+				
+				<!--
+				Variables.
+					
+				To use the value of a variable, you simply name the variable. For example, x="myx" would set the 'x' position
+				of an object to the value of the "myx" variable.
+				
+				There are some predefined variables:
+				
+					card: contains all the attributes of the current card. For example, if you have this card
+						
+							<card text="Give **2** @heart" cost="2" id="1" tags="simple" />
+							
+						then
+						
+							"card.text" will be equal to the string "Give **2** @heart"
+							"card.cost" will be equal to the string "2"
+							and so on
+					
+				To change the value of a variable, you use the <set-var> element:
+				-->
+				<set-var var="myx" value="10" />
+				
+				<!--
+				Operators.
+				
+				You can use the following operators in your expression:
+				
+					+: adds two numbers
+					-: subtracts two numbers
+					*: multiplies two numbers
+					/: divides two numbers
+					%: computes the remainder of the first number divided by the second number
+					
+					=: compares two values for equality, results in either 1 (equal), or 0 (not equal)
+					!=: compares two values for inequality, results in either 1 (not equal), or 0 (equal)
+					LT: compares two values, results in either 1 (the first one is less than the second one), or 0 otherwise
+					GT: compares two values, results in either 1 (the first one is greater than the second one), or 0 otherwise
+					LE: compares two values, results in either 1 (the first one is less than or equal to the second one), or 0 otherwise
+					GE: compares two values, results in either 1 (the first one is greater than or equal to the second one), or 0 otherwise
+					
+					and: results in 1 if both values are non-zero, and in 0 if any one value is zero
+					or: results in 1 if one of the values is non-zero, and in 0 otherwise
+					
+				For example, the following element sets the doubledcost variable to the cost of the card multiplied by 2:
+				-->
+				<set-var var="doubledcost" value="card.cost * 2" />
+				
+				<!--
+				Functions.
+				
+				You can use the following functions:
+				
+					abs(x): returns the absolute value of a number (negates negative numbers and leaves positive numbers as is)
+					floor(x): rounds a number down (0.2 -> 0, 1.8 -> 1, -4.3 -> -5)
+					ceil(x): rounds a number up (0.2 -> 1, 1.8 -> 2, -4.3 -> -4)
+					round(x): rounds a number to the nearest whole number (0.2 -> 0, 1.8 -> 2, -4.3 -> -4)
+					min(x,y): returns the smallest of two numbers
+					max(x,y): returns the largest of two numbers
+					
+					len(x): returns the length of a list
+					
+					tostr(x): converts its argument to a string
+					toint(x): converts its argument to an integer
+					tonumber(x): converts its argument to a number
+					
+					words(x): splits a string into a list of strings using space as separator ('this is a string' -> ['this', 'is', 'a', 'string'])
+					split(x,s): splits a string into a list of strings using custom separator ('list,of,things', ',') -> ['list', 'of', 'things'])
+					join(x,s): joins a list of strings into one string using custom separator (['list', 'of', 'things'], ';') -> 'list;of;things')
+					repeat(s,n): repeats a string a number of times ('test', 4 -> 'testtesttesttest')
+					substring(s,b,e): extracts part of a string, starting at character b, and ending at character e (not including e)
+					contains(s,n): returns 1 of a string contains another string, and 0 otherwise
+					concat(s1,s2): returns a new string made from concatenation of two source strings
+				-->
+				
+				<!--
+				String substitution.
+				
+				When an attribute requires some string data (like card name, or text field text), your input is treated as a plain string,
+				and not as an expression. To substitute an expression, you need to use the `${expression}` syntax.
+				See the following element for an example.
+				-->
+				
 				<!--
 				If your card's data doesn't have the "name" attribute, you can use the following element to set it.
 				-->
@@ -194,10 +282,10 @@
 						
 						height (required): the height of the rectangle, in pixels
 						
-						color (optional): the fill color of the rectangle, as a hexidecimal number #RRGGBB or #AARRGGBB for a color with transparency.
+						color (optional): the fill color of the rectangle, as a hexidecimal number #RRGGBB or #RRGGBBAA for a color with transparency.
 							If not set, then the rectangle will not be filled.
 							
-						line-color (optional): the line color of the rectangle, as a hexidecimal number #RRGGBB or #AARRGGBB for a color with transparency.
+						line-color (optional): the line color of the rectangle, as a hexidecimal number #RRGGBB or #RRGGBBAA for a color with transparency.
 							If not set, then the rectangle will not have outline.
 							
 						line-width (optional): the width of the outline of the rectangle, in pixels.
@@ -241,7 +329,6 @@
 						text (required): the text to print in this text field
 					-->
 					<draw-text x="20" y="150" width="360" height="450" style="my_style" text="${card.text}" />
-					<draw-text x="100" y="40" width="200" height="100" style="large_style" text="${card.cost}" />
 					
 					<!--
 					If you need to execute something for each element in a list, you can use the <for-each> element.
@@ -249,7 +336,6 @@
 						var (required): the name of the variable to set to each value in the list
 						
 						in (required): the list of things to iterate over.
-							You do not need to use ${} in the "in" attribute.
 						
 					The following example iterates over each tag in card's tags,
 					and draws an image for each one.
@@ -257,6 +343,82 @@
 					<for-each var="tag" in="words(card.tags)">
 						<draw-image x="350" y="550" align-x="0.5" align-y="0.5" src="tag_${tag}.png" />
 					</for-each>
+					
+					<!--
+					Some more control elements
+					-->
+					
+					<!--
+					<if> element allows you to conditionally execute some instructions
+					
+						condition (required): the condition to check
+							If this expression computes to non-zero value, then the instructions inside it are processed.
+							Otherwise, these instructions are skipped.
+					-->
+					<if condition="contains(card.tags,'complex')">
+						<draw-image x="50" y="50" align-x="0.5" align-y="0.5" src="tag_complex.png" />
+					</if>
+					
+					<!--
+					<while> element allows you to repeat a set of instructions while some condition is true.
+					
+						condition (required): the condition to check
+							If this expression computes to non-zero value, then the instructions inside it are processed,
+							and the condition is checked again.
+							Otherwise, these instructions are skipped, and the next element is processed.
+					-->
+					<set-var var="myx" value="20" />
+					<while condition="myx LT 380">
+						<draw-rect x="myx+1" y="301" width="18" height="18" line-color="#00000033" />
+						<set-var var="myx" value="myx + 20" />
+					</while>
+					
+					<!--
+					<for> element allows you to repeat a set of instructions for all values in some range.
+					
+						var (required): the name of the variable to set to each value in the range
+						
+						from (required): the starting value of the range
+						
+						to (required): the final value of the range (inclusive)
+						
+						step: the increment of the variable
+							Defaults to 1
+						
+						For example, for from="10", to="20" and step="3", you will get the following values:
+						
+							10 13 16 19
+					-->
+					<for var="myy" from="20" to="560" step="20" >
+						<draw-rect x="191" y="myy+1" width="18" height="18" line-color="#00000033" />
+					</for>
+					
+					<!--
+					<case> elements allows to choose only one course of actions, based on a series of conditions
+					-->
+					<case>
+						<!--
+						<when> element can go inside the <case> element. It defines one of the mutually exclusive
+						instruction blocks. Only the first <when> element with a satisfied condition will be executed.
+						
+							condition (required): the condition to check
+								If this expression computes to non-zero value, then the instructions inside it are processed,
+								and the rest of this <case> element is skipped.
+								Otherwise, these instructions are skipped, and the next element is considered.
+						-->
+						<when condition="card.cost = '1'">
+							<draw-text x="100" y="40" width="200" height="100" style="large_style_1" text="${card.cost}" />
+						</when>
+						<when condition="card.cost = '2'">							
+							<draw-text x="100" y="40" width="200" height="100" style="large_style_2" text="${card.cost}" />
+						</when>
+						<!--
+						The <default> block is executed if no other block had passing condition.
+						-->
+						<default>
+							<draw-text x="100" y="40" width="200" height="100" style="large_style_3" text="${card.cost}" />
+						</default>
+					</case>
 				</face>
 			</render>
 		</cards>
