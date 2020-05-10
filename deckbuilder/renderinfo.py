@@ -29,8 +29,10 @@ class DeckSheetInfo:
 		self.cards_info: List[CardInfo] = []
 
 class DeckInfo:
-	def __init__(self, name: str):
+	def __init__(self, name: str, width: int, height: int):
 		self.name: str = name
+		self.width: int = width
+		self.height: int = height
 		self.sheets: List[DeckSheetInfo] = []
 		self.stack: List[int] = []
 		self.scale: float = 1

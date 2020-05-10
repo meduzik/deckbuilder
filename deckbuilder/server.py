@@ -39,6 +39,8 @@ def convert_sheet(sheet: DeckSheetInfo):
 def convert_deck(deck: DeckInfo):
 	return {
 		"name": deck.name,
+		"width": deck.width,
+		"height": deck.height,
 		"sheets": [convert_sheet(sheet) for sheet in deck.sheets],
 		"stack": deck.stack,
 		"scale": deck.scale

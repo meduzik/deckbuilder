@@ -105,7 +105,7 @@ class DeckRenderer:
 		return self.info
 
 	def render_deck(self, deck: Deck) -> None:
-		info: DeckInfo = DeckInfo(deck.name)
+		info: DeckInfo = DeckInfo(deck.name, int(deck.size[0]), int(deck.size[1]))
 		info.scale = deck.scale
 		self.info.decks.append(info)
 		layout: DeckLayout = DeckLayout(deck)
