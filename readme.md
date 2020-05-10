@@ -6,7 +6,9 @@ This tool is made to simplify and streamline the process of rendering and upload
 
 Its main purpose is to help game creators who make lots of changes to their cards and need a fast way to test these changes.
 
-It is a "magic button" solution for importing data from a data source (currently supports Google Spreadsheets), rendering it in a configurable way on as many sheets as required, then uploading these sheets to the TTS, stacking in order, fixing GUIDs, assigning names and description to individual cards as required. 
+It is a "magic button" solution for importing data from a data source (currently supports Google Spreadsheets), rendering it in a configurable way on as many sheets as required, then uploading these sheets to the TTS, stacking in order, fixing GUIDs, assigning names and description to individual cards as required.
+
+You can also use this tool to quickly upload a collection of card images as a deck to the TTS. without going through the process of making card sheets and/or uploading each one individually. For an example, see `example/fromimages.xml`.
 
 # Requirements
 
