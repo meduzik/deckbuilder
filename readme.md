@@ -1,5 +1,7 @@
 # About
 
+![image](image.jpg)
+
 This tool is made to simplify and streamline the process of rendering and uploading playing cards to the Tabletop Simulator. It takes care of most limitations and quirks, like texture size limit, or card number limit, while keeping the total size of the images as small as possible to make your games faster to load and use less memory.
 
 It's main purpose is to help game creators who make lots of changes to their cards and need a fast way to test those changes.
