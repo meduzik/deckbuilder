@@ -252,6 +252,10 @@ class DeckRenderer:
 			], suppress_stderr=True)
 			hash = sha1file(preview_path)
 			target_path = os.path.abspath(os.path.join(self.out_dir, sheet.deck.name + "." + hash[:12] + ".png"))
+			try:
+				os.remove(target_path)
+			except:
+				pass
 			shutil.copy(preview_path, target_path)
 			return target_path
 

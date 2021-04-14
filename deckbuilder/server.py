@@ -139,4 +139,5 @@ class RequestHandler(BaseHTTPRequestHandler):
 
 
 print(f"Starting server on port {PORT}")
+print(f"Open http://localhost:{PORT}/?preview&deck=example/deck.xml for an example deck")
 ThreadingHTTPServer(("localhost", PORT), RequestHandler).serve_forever()
