@@ -2,16 +2,20 @@ import os
 import shutil
 from collections import defaultdict
 from typing import List, Any, Dict, Optional, Tuple, Set
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 
 from deckbuilder.core import Deckbuilder, Deck, CardFaceTemplate, CardTemplate, TextStyle
 from deckbuilder.process import run_async_command
 from deckbuilder.promise import Promise, asyncify
 from deckbuilder.renderinfo import DecksInfo, DeckInfo, DeckSheetInfo, CardInfo
 from deckbuilder.utils import sha1file
+from threading import Lock
 
 MaxSize = 8192
 MaxCards = 70
 
+chrome_mutex = Lock()
 
 class RenderConfig:
 	def __init__(self, chrome_bin: str):
@@ -242,6 +246,8 @@ class DeckRenderer:
 		@asyncify
 		def run():
 			preview_path = os.path.abspath(os.path.join(self.out_dir, path)) + ".png"
+
+			"""
 			yield run_async_command(f"Rendering {path} card sheet", [
 				self.cfg.chrome_bin,
 				"--headless",
@@ -250,6 +256,18 @@ class DeckRenderer:
 				"--default-background-color=0",
 				"file://" + html_file
 			], suppress_stderr=True)
+			"""
+
+			with chrome_mutex:
+				options = Options()
+				options.headless = True
+
+				driver = webdriver.Chrome(options)
+				driver.set_window_size(width, height)
+				driver.get("file://" + html_file)
+				driver.save_screenshot(preview_path)
+				driver.close()
+
 			hash = sha1file(preview_path)
 			target_path = os.path.abspath(os.path.join(self.out_dir, sheet.deck.name + "." + hash[:12] + ".png"))
 			try:
