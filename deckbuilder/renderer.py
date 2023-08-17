@@ -1,5 +1,6 @@
 import os
 import shutil
+import time
 from collections import defaultdict
 from typing import List, Any, Dict, Optional, Tuple, Set
 from selenium import webdriver
@@ -16,6 +17,7 @@ MaxSize = 8192
 MaxCards = 70
 
 chrome_mutex = Lock()
+driver = None
 
 class RenderConfig:
 	def __init__(self, chrome_bin: str):
@@ -245,28 +247,27 @@ class DeckRenderer:
 
 		@asyncify
 		def run():
+			global driver
+
 			preview_path = os.path.abspath(os.path.join(self.out_dir, path)) + ".png"
 
-			"""
-			yield run_async_command(f"Rendering {path} card sheet", [
-				self.cfg.chrome_bin,
-				"--headless",
-				"--screenshot=" + preview_path,
-				f"--window-size={width},{height}",
-				"--default-background-color=0",
-				"file://" + html_file
-			], suppress_stderr=True)
-			"""
-
 			with chrome_mutex:
-				options = Options()
-				options.headless = True
+				print(f"Rendering {html_file}...")
+				time_begin = time.time()
 
-				driver = webdriver.Chrome(options)
+				if not driver:
+					print(f"Starting new Chrome process")
+
+					options = Options()
+					options.headless = True
+
+					driver = webdriver.Chrome(options)
+
 				driver.set_window_size(width, height)
 				driver.get("file://" + html_file)
 				driver.save_screenshot(preview_path)
-				driver.close()
+
+				print(f"Rendering complete in {time.time() - time_begin}s")
 
 			hash = sha1file(preview_path)
 			target_path = os.path.abspath(os.path.join(self.out_dir, sheet.deck.name + "." + hash[:12] + ".png"))
