@@ -14,7 +14,9 @@ You can also use this tool to quickly upload a collection of card images as a de
 
 [Python 3.8](https://www.python.org/downloads/).
 
-[Google Chrome](https://www.google.com/chrome/) (it uses this browser to render card sheets). If you have it installed in some unusual place, then change the path in the `config.ini`.
+- You need to install Selenium package for Python. You can do this by running `python -m pip install selenium` in the command line, or `python -m pip install -r requirements.txt` in the tool's folder.
+
+[Google Chrome](https://www.google.com/chrome/) (it uses this browser to render card sheets).
 
 This tool creates a local web server to talk to TTS. It does not expose the server to the outside world (so it only accepts request from your local computer). It uses the port 17352 by default. If you change the port in the `config.ini`, you then need to change it in the TTS script as well.
 
@@ -31,7 +33,7 @@ You can then open the following link in your web browser to test if everything w
 http://localhost:17352/?preview&deck=examples/deck.xml
 ```
 
-After a while, it should render card sheets in the browsers.
+After a while, it should render card sheets in the browsers. First render will be longer as it needs to boot up Chrome.
 
 To test your own deck, open the link
 ```
