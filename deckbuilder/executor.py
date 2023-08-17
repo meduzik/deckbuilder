@@ -1,5 +1,6 @@
 import json
 import math
+import numbers
 import re
 from typing import Optional, Dict, Any, Callable, TypeVar
 
@@ -48,6 +49,15 @@ def to_int(val):
 
 re_split = re.compile("(?:\".*?\"|\S)+")
 
+def coerce2(fn):
+	def worker(a, b):
+		if isinstance(a, float) or isinstance(b, float):
+			return fn(float(a), float(b))
+		if isinstance(a, int) or isinstance(b, int):
+			return fn(int(a), int(b))
+		return fn(a, b)
+	return worker
+
 funcs = {
 	"words": {"args": [to_string], "call": lambda s: re_split.findall(s)},
 	"split": {"args": [to_string, to_string], "call": lambda s, n: s.split(n)},
@@ -74,12 +84,12 @@ funcs = {
 	"*": {"args": [to_number, to_number], "call": lambda x, y: x * y},
 	"/": {"args": [to_number, to_number], "call": lambda x, y: x / y},
 	"%": {"args": [to_number, to_number], "call": lambda x, y: x % y},
-	"=": {"args": [to_any, to_any], "call": lambda x, y: 1 if x == y else 0},
-	"!=": {"args": [to_any, to_any], "call": lambda x, y: 1 if x != y else 0},
-	"LT": {"args": [to_any, to_any], "call": lambda x, y: 1 if x < y else 0},
-	"GT": {"args": [to_any, to_any], "call": lambda x, y: 1 if x > y else 0},
-	"LE": {"args": [to_any, to_any], "call": lambda x, y: 1 if x <= y else 0},
-	"GE": {"args": [to_any, to_any], "call": lambda x, y: 1 if x >= y else 0},
+	"=": {"args": [to_any, to_any], "call": coerce2(lambda x, y: 1 if x == y else 0)},
+	"!=": {"args": [to_any, to_any], "call": coerce2(lambda x, y: 1 if x != y else 0)},
+	"LT": {"args": [to_any, to_any], "call": coerce2(lambda x, y: 1 if x < y else 0)},
+	"GT": {"args": [to_any, to_any], "call": coerce2(lambda x, y: 1 if x > y else 0)},
+	"LE": {"args": [to_any, to_any], "call": coerce2(lambda x, y: 1 if x <= y else 0)},
+	"GE": {"args": [to_any, to_any], "call": coerce2(lambda x, y: 1 if x >= y else 0)},
 	"and": {"args": [to_number, to_number], "call": lambda x, y: 1 if x and y else 0},
 	"or": {"args": [to_number, to_number], "call": lambda x, y: 1 if x or y else 0},
 }

@@ -125,6 +125,43 @@ class ExprParser:
 	def try_parse_expr(self) -> Optional[Expr]:
 		return self.try_parse_expr_at(PrecedenceMax)
 
+	def peek_compare_op(self) -> Optional[str]:
+		restart = self.pos
+		ch = self.peek()
+		if ch in IdStartChar:
+			id = self.parse_id()
+			if id in CompareOps:
+				return id
+			else:
+				self.pos = restart
+				return None
+		else:
+			candidate = ""
+			found_pos = None
+			found = None
+			while True:
+				ch = self.peek()
+				if ch is None:
+					break
+				candidate = candidate + ch
+				for op in CompareOps:
+					if op == candidate:
+						found_pos = self.pos
+						found = candidate
+					if op.startswith(candidate):
+						break
+				else:
+					break
+				self.advance()
+
+			if found_pos is not None:
+				self.pos = found_pos
+				self.advance()
+				return found
+			else:
+				self.pos = restart
+				return None
+
 	def try_parse_expr_at(self, prec: int) -> Optional[Expr]:
 		prim = self.try_parse_prim()
 		if not prim:
@@ -148,11 +185,11 @@ class ExprParser:
 				self.advance()
 				rhs = self.parse_expr_at(PrecedenceMul - 1)
 				expr = ExprCall(ch, [expr, rhs])
-			elif prec >= PrecedenceCompare and (ch in CompareOps):
+			elif prec >= PrecedenceCompare and (op := self.peek_compare_op()):
 				self.advance()
 				rhs = self.parse_expr_at(PrecedenceCompare - 1)
-				expr = ExprCall(ch, [expr, rhs])
-			elif  ch in IdStartChar:
+				expr = ExprCall(op, [expr, rhs])
+			elif ch in IdStartChar:
 				tok = self.peek_token()
 				if prec >= PrecedenceOr and tok == "or":
 					self.parse_id()
