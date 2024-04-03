@@ -428,6 +428,15 @@
 						</default>
 					</case>
 				</face>
+				
+				<!--
+				<back> element is similar to <face> element, but contains instructions on how to render the back face.
+				This should be used only when you need to render unique backs per card, otherwise see <back-default>
+				below (make sure it is properly placed outside of the <cards> tag).
+				-->
+				<back>
+					<draw-text x="20" y="150" width="360" height="450" style="my_style" text="${card.text}" />
+				</back>
 			</render>
 		</cards>
 		

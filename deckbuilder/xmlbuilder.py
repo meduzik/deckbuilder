@@ -2,7 +2,7 @@ import os
 import sys
 
 from deckbuilder.ast import StmtForEach, StmtSetName, StmtSetDescription, StmtWhile, StmtFor, StmtCase, StmtIf, \
-	StmtSetVar, WhenBlock
+	StmtSetVar, WhenBlock, StmtBack
 from deckbuilder.context import DeckTemplate, DeckContext, CardBlock, CardData, FaceTemplate, InlineSymbol
 from deckbuilder.datasource import download_google_sheet_as_dictionary
 from deckbuilder.executor import StmtSequence, StmtFace, StmtDrawText, StmtDrawRect, StmtDrawImage
@@ -344,6 +344,8 @@ class XMLParser:
 				block.stmts.append(self.process_element(elt, self.parse_draw_image))
 			elif elt.tag == "face":
 				block.stmts.append(self.process_element(elt, self.parse_face))
+			elif elt.tag == "back":
+				block.stmts.append(self.process_element(elt, self.parse_back))
 			elif elt.tag == "set-name":
 				block.stmts.append(self.process_element(elt, self.parse_setname))
 			elif elt.tag == "set-description":
@@ -420,6 +422,11 @@ class XMLParser:
 		params = self.parse_scheme(elt, face_scheme)
 		face = StmtFace(self.getloc(elt), self.parse_stmt_list(elt))
 		return face
+
+	def parse_back(self, elt: Element) -> StmtBack:
+		params = self.parse_scheme(elt, face_scheme)
+		back = StmtBack(self.getloc(elt), self.parse_stmt_list(elt))
+		return back
 
 	def parse_draw_text(self, elt: Element) -> StmtDrawText:
 		params = self.parse_scheme(elt, draw_text_scheme)

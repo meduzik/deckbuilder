@@ -49,6 +49,11 @@ class StmtFace(Stmt):
 		super().__init__(location)
 		self.stmt: Stmt = stmt
 
+class StmtBack(Stmt):
+	def __init__(self, location: Tuple[int, int], stmt: Stmt):
+		super().__init__(location)
+		self.stmt: Stmt = stmt
+
 class StmtSetName(Stmt):
 	def __init__(self, location: Tuple[int, int], value: Expr):
 		super().__init__(location)

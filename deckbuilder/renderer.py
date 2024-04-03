@@ -168,21 +168,26 @@ class DeckRenderer:
 				break
 
 		faces: List[Optional[CardFaceTemplate]] = []
-		backs: List[CardFaceTemplate] = []
+		backs: List[Optional[CardFaceTemplate]] = []
 
 		for card in cards:
 			faces.append(card.get_front())
 
-		face_layout = CardSheetLayout(deck_layout, len(faces) + deck_layout.need_face_card, False)
+		cards_in_sheet = len(faces) + deck_layout.need_face_card
+
+		face_layout = CardSheetLayout(deck_layout, cards_in_sheet, False)
 		if deck_layout.need_face_card:
 			while len(faces) < face_layout.rows * face_layout.cols - 1:
 				faces.append(None)
 			faces.append(deck.hidden_face)
 
 		if unique_backs:
-			back_layout = CardSheetLayout(deck_layout, len(faces) + deck_layout.need_face_card, False)
+			back_layout = CardSheetLayout(deck_layout, cards_in_sheet, False)
 			for card in cards:
 				backs.append(card.get_back())
+			while len(backs) < len(faces) - 1:
+				backs.append(None)
+			backs.append(deck.hidden_face)
 		else:
 			back_layout = CardSheetLayout(deck_layout, len(faces) + deck_layout.need_face_card, True)
 			backs.append(deck.default_back)

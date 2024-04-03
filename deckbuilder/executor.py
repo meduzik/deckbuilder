@@ -7,7 +7,7 @@ from typing import Optional, Dict, Any, Callable, TypeVar
 from deckbuilder import textparser
 from deckbuilder.ast import Stmt, StmtSequence, StmtDrawRect, StmtDrawText, StmtDrawImage, StmtFace, Expr, ExprLit, \
 	ExprConcat, ExprField, ExprID, StmtForEach, ExprCall, StmtSetName, StmtSetDescription, StmtSetVar, StmtIf, \
-	StmtWhile, StmtFor, StmtCase
+	StmtWhile, StmtFor, StmtCase, StmtBack
 from deckbuilder.context import DeckContext, DeckTemplate, FaceTemplate, CardData, CardBlock
 from deckbuilder.core import CardTemplate, CardFaceTemplate, Deckbuilder, Deck
 import deckbuilder.validators as validators
@@ -158,6 +158,17 @@ class Executor:
 				if not self.face:
 					self.face = self.card.deck.make_face()
 					self.card.set_front(self.face)
+				self.execute(stmt.stmt)
+				self.face = None
+			elif isinstance(stmt, StmtBack):
+				if self.face is not None:
+					raise ValidateError("back already selected")
+				if not self.card:
+					raise ValidateError("no active card")
+				self.face = self.card.back
+				if not self.face:
+					self.face = self.card.deck.make_face()
+					self.card.set_back(self.face)
 				self.execute(stmt.stmt)
 				self.face = None
 			elif isinstance(stmt, StmtForEach):

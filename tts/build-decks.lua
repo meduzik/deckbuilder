@@ -76,7 +76,7 @@ function build_decks()
 				height = sheet.height,
 				number = sheet.count,
 				back_is_hidden = not sheet.has_face_hidden,
-				unique_backs = sheet.unique_backs
+				unique_back = sheet.unique_backs
 			}
 			sheet_deck.setCustomObject(data)
 			sheet_deck.setLock(true)
@@ -94,6 +94,9 @@ function build_decks()
 					},
 					smooth = false
 				}
+				if sheet.unique_backs then
+					card.hide_when_face_down = false
+				end
 				card.setLock(true)
 				if card_info.name then
 					card.setName(card_info.name)
