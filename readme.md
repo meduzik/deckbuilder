@@ -15,6 +15,7 @@ You can also use this tool to quickly upload a collection of card images as a de
 [Python 3.8](https://www.python.org/downloads/).
 
 - You need to install Selenium package for Python. You can do this by running `python -m pip install selenium` in the command line, or `python -m pip install -r requirements.txt` in the tool's folder.
+- You need to install Pillow library for Python. You can do this by running `python -m pip install Pillow` in the command line, or `python -m pip install -r requirements.txt` in the tool's folder.
 
 [Google Chrome](https://www.google.com/chrome/) (it uses this browser to render card sheets).
 
