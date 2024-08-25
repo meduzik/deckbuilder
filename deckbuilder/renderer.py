@@ -5,6 +5,7 @@ from collections import defaultdict
 from typing import List, Any, Dict, Optional, Tuple, Set
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
 
 from deckbuilder.core import Deckbuilder, Deck, CardFaceTemplate, CardTemplate, TextStyle
 from deckbuilder.process import run_async_command
@@ -243,7 +244,7 @@ class DeckRenderer:
 			out.write('</style>')
 			out.write("</head>")
 			out.write("<body>")
-			out.write('<div class="deck">')
+			out.write(f'<div id="deck" class="deck" style="width:{width}px;height:{height}px">')
 			for piece in sheet.contents:
 				out.write(piece)
 			out.write('</div>')
@@ -268,9 +269,25 @@ class DeckRenderer:
 
 					driver = webdriver.Chrome(options)
 
-				driver.set_window_size(width, height)
 				driver.get("file://" + html_file)
-				driver.save_screenshot(preview_path)
+
+				original_size = driver.get_window_size()
+
+				extra_height = driver.execute_script('return window.outerHeight - window.innerHeight')
+				extra_width = driver.execute_script('return window.outerWidth - window.innerWidth')
+
+				required_width = driver.execute_script('return document.body.parentNode.scrollWidth') + extra_width
+				required_height = driver.execute_script('return document.body.parentNode.scrollHeight') + extra_height
+
+				print(f"Requested window size is {required_width}x{required_height}, including extra {extra_width}x{extra_height}")
+				driver.set_window_size(required_width, required_height)
+
+				size = driver.get_window_size()
+				print(f"Actual window size is {size['width']}x{size['height']}")
+
+				driver.find_element(by=By.ID, value='deck').screenshot(preview_path)
+
+				driver.set_window_size(original_size['width'], original_size['height'])
 
 				print(f"Rendering complete in {time.time() - time_begin}s")
 
