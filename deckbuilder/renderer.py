@@ -6,6 +6,7 @@ from typing import List, Any, Dict, Optional, Tuple, Set
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from PIL import Image
 
 from deckbuilder.core import Deckbuilder, Deck, CardFaceTemplate, CardTemplate, TextStyle
 from deckbuilder.process import run_async_command
@@ -268,13 +269,17 @@ class DeckRenderer:
 					options.headless = True
 
 					driver = webdriver.Chrome(options)
+					driver.set_window_size(800, 600)
 
-				driver.get("file://" + html_file)
+
+				driver.get("about:blank")
 
 				original_size = driver.get_window_size()
 
 				extra_height = driver.execute_script('return window.outerHeight - window.innerHeight')
 				extra_width = driver.execute_script('return window.outerWidth - window.innerWidth')
+
+				driver.get("file://" + html_file)
 
 				required_width = driver.execute_script('return document.body.parentNode.scrollWidth') + extra_width
 				required_height = driver.execute_script('return document.body.parentNode.scrollHeight') + extra_height
@@ -286,6 +291,13 @@ class DeckRenderer:
 				print(f"Actual window size is {size['width']}x{size['height']}")
 
 				driver.find_element(by=By.ID, value='deck').screenshot(preview_path)
+
+				with Image.open(preview_path) as image:
+					image_width, image_height = image.size
+					if width != image_width or height != image_height:
+						print(f"WARNING! Image size is {image_width}x{image_height}, but expected {width}x{height}")
+						print(f"This is probably a bug in the Selenium rendering process")
+						raise RuntimeError(f"Image size mismatch, expected {width}x{height}, got {image_width}x{image_height}")
 
 				driver.set_window_size(original_size['width'], original_size['height'])
 
